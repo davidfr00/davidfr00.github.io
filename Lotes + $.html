@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Lotes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            font-weight: 700;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h2>Calculadora de Lotes</h2>
+    <form id="calculatorForm">
+        <label for="risk">Riesgo ($):</label>
+        <input type="number" id="risk" required>
+
+        <label for="pointValue">Point Value:</label>
+        <select id="pointValue" required>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+            <option value="12.5">12.5 (Futuros Euro - 6E)</option>
+        </select>
+
+        <label for="sl">Stop Loss:</label>
+        <input type="number" id="sl" step="0.0001" required>
+
+        <button type="submit">Calcular</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("calculatorForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var risk = parseFloat(document.getElementById("risk").value);
+            var pointValue = parseFloat(document.getElementById("pointValue").value);
+            var sl = parseFloat(document.getElementById("sl").value);
+            var adjustedSL = sl;
+
+            // Ajustar el SL si el símbolo es 6E
+            var pointValueSelect = document.getElementById("pointValue");
+            var selectedOption = pointValueSelect.options[pointValueSelect.selectedIndex].text;
+
+            if (selectedOption.includes("6E")) {
+                adjustedSL = sl / 0.0001; // Convertimos SL de pips a puntos
+            }
+
+            var lots = calcularLotes(risk, pointValue, adjustedSL);
+            var roundedLots = Math.round(lots);
+
+            // Calcular la pérdida real en dólares
+            var actualLossUSD = roundedLots * pointValue * adjustedSL;
+
+            document.getElementById("result").innerHTML = `
+                <p>El número de lotes es: ${roundedLots}</p>
+                <p>La pérdida estimada es: ${actualLossUSD.toFixed(2)} USD</p>
+            `;
+        });
+
+        function calcularLotes(risk, pointValue, sl) {
+            return risk / (pointValue * sl);
+        }
+    </script>
+</body>
+</html>
